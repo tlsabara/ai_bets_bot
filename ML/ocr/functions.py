@@ -1,9 +1,10 @@
 import numpy as np
 
 __verify_soma_msg_error = "A variável soma deve ser numérica."
-__verify_mae_lists_len_msg_error = '(calculated, actual) devem ter os mesmos tamanhos'
-__verify_mae_args_type_msg_error = '(calculated, actual) devem ser listas.'
-__verify_mae_lists_values_msg_error = 'Os valores contidos nas listas(calculated, actual) devem ser numéricos.'
+__verify_softmax_msg_error = "A variável vetor_sum deve ser uma lista."
+__verify_accuracy_lists_len_msg_error = '(calculated, actual) devem ter os mesmos tamanhos'
+__verify_accuracy_args_type_msg_error = '(calculated, actual) devem ser listas.'
+__verify_accuracy_lists_values_msg_error = 'Os valores contidos nas listas(calculated, actual) devem ser numéricos.'
 
 
 def __verify_soma(val: any) -> None:
@@ -18,19 +19,23 @@ def __verify_soma(val: any) -> None:
 
 def __verify_accuracy_args_type(calculated, actual):
     if not isinstance(calculated, list) or not isinstance(actual, list):
-        raise TypeError(__verify_mae_args_type_msg_error)
+        raise TypeError(__verify_accuracy_args_type_msg_error)
 
 
 def __verify_accuracy_lists_len(calculated, actual):
     if not len(actual) == len(calculated):
-        raise ValueError(__verify_mae_lists_len_msg_error)
+        raise ValueError(__verify_accuracy_lists_len_msg_error)
 
 
 def __verify_accuracy_lists_values(calculated: list, actual: list):
     if True in [not isinstance(i, (int, float)) for i in calculated] or \
             True in [not isinstance(i, (int, float)) for i in actual]:
-        raise TypeError(__verify_mae_lists_values_msg_error)
+        raise TypeError(__verify_accuracy_lists_values_msg_error)
 
+
+def __verify_softmax_arg_type(to_test: list) -> None:
+    if not isinstance(to_test, list):
+        raise TypeError(__verify_softmax_msg_error)
 
 def step_function(soma: float) -> int:
     """
@@ -85,6 +90,7 @@ def linear_function(soma: float) -> float:
 
 
 def softmax_function(vetor_sum: list):
+    __verify_softmax_arg_type(vetor_sum)
     ex = np.exp(vetor_sum)
     return ex / ex.sum()
 
@@ -93,9 +99,9 @@ def softmax_function(vetor_sum: list):
 
 def accuracy_tx_by_mae(calculated: list, actual: list) -> float:
     # todo montar testes e docmuentar
+    __verify_accuracy_args_type(calculated, actual)
     __verify_accuracy_lists_len(calculated, actual)
     __verify_accuracy_lists_values(calculated, actual)
-    __verify_accuracy_args_type(calculated, actual)
     n = len(calculated)
     my_sum = 0
     for i in range(n):

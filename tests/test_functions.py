@@ -3,6 +3,7 @@ import ML.ocr.functions as functions
 
 
 # RAISES VALIDATION
+# todo montar essa estrutura para os demais metodos de verificação
 def test_verfy_function_shold_return_none():
     """
     Verificar se a função esta retornando None para int e float.
@@ -35,6 +36,7 @@ def test_verfy_function_shold_raise_error_if_non_numerical_parameter(value):
         (functions.sigmoid_function, 'any_string'),
         (functions.relu_function, 'any_string'),
         (functions.linear_function, 'any_string'),
+        (functions.softmax_function, 'any_string'),
     ]
 )
 def test_step_function_shold_raise_error_if_recive_non_numerical_parameters(func, soma):
@@ -49,7 +51,31 @@ def test_step_function_shold_raise_error_if_recive_non_numerical_parameters(func
             error = e.args
             raise e
     assert len(error) == 1
-    assert error[0] == functions.__verify_soma_message_error
+    assert error[0] == functions.__verify_soma_msg_error
+
+
+@pytest.mark.parametrize(
+    'func, params_list, message_error, type_error',
+    [
+        (functions.accuracy_tx_by_mae, [[1, 2, 2], 'any_string'], functions.__verify_accuracy_args_type_msg_error, TypeError),
+        (functions.accuracy_tx_by_mae, [True, [1, 2, 2]], functions.__verify_accuracy_args_type_msg_error, TypeError),
+        (functions.accuracy_tx_by_mae, [[1, 2, 1, 2, 2], [4, 4, 4, 4, 4, 4, 4, 4]], functions.__verify_accuracy_lists_len_msg_error, ValueError),
+        (functions.accuracy_tx_by_mae, [['s','s'], [1, 1]], functions.__verify_accuracy_lists_values_msg_error, TypeError),
+    ]
+)
+def test_step_function_shold_raise_error_if_recive_non_numerical_parameters(func, params_list, message_error, type_error):
+    """
+    Para testar se a função esta aceitando apenas numeros.
+    """
+    error = None
+    with pytest.raises(type_error):
+        try:
+            func(*params_list)
+        except Exception as e:
+            error = e.args
+            raise e
+    assert len(error) == 1
+    assert error[0] == message_error
 
 
 # STEP FUNCTION.
