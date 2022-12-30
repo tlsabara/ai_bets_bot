@@ -1,5 +1,5 @@
 import pytest
-import ML.utils.functions as functions
+from spacerman_ai import machine_models as functions
 
 
 # RAISES VALIDATION

@@ -16,10 +16,10 @@ import keras
 
 # Realizei o carregamento dos arquivos.
 
-previsores_file = './datasheets/entradas_breast.csv'
+previsores_file = 'datasheets/entradas_breast.csv'
 df_previsores = pd.read_csv(previsores_file)
 
-class_file = './datasheets/saidas_breast.csv'
+class_file = 'datasheets/saidas_breast.csv'
 df_class_file = pd.read_csv(class_file)
 
 #%%
