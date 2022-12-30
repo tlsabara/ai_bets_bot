@@ -1,5 +1,5 @@
 import pytest
-import ML.ocr.functions as functions
+import ML.utils.functions as functions
 
 
 # RAISES VALIDATION
@@ -60,7 +60,7 @@ def test_step_function_shold_raise_error_if_recive_non_numerical_parameters(func
         (functions.accuracy_tx_by_mae, [[1, 2, 2], 'any_string'], functions.__verify_accuracy_args_type_msg_error, TypeError),
         (functions.accuracy_tx_by_mae, [True, [1, 2, 2]], functions.__verify_accuracy_args_type_msg_error, TypeError),
         (functions.accuracy_tx_by_mae, [[1, 2, 1, 2, 2], [4, 4, 4, 4, 4, 4, 4, 4]], functions.__verify_accuracy_lists_len_msg_error, ValueError),
-        (functions.accuracy_tx_by_mae, [['s','s'], [1, 1]], functions.__verify_accuracy_lists_values_msg_error, TypeError),
+        (functions.accuracy_tx_by_mae, [['s', 's'], [1, 1]], functions.__verify_accuracy_lists_values_msg_error, TypeError),
     ]
 )
 def test_step_function_shold_raise_error_if_recive_non_numerical_parameters(func, params_list, message_error, type_error):
