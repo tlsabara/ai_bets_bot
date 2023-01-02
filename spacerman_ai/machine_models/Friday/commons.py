@@ -1,6 +1,7 @@
 from datetime import datetime
 from pathlib import Path
 
+import imutils
 from PIL import Image
 import numpy as np
 import pytesseract
@@ -67,7 +68,8 @@ class FridayDataGenerator:
         for i in self.files_indexed:
             data_dict = self.utils.get_data_from_image_name(i.name)
             ocr_text = self.utils.get_string_from_image(str(i))
-            ocr_clean_text = self.utils.text_cleaner(ocr_text)
+            crash = data_dict['type'] == 'crash'
+            ocr_clean_text = self.utils.text_cleaner(ocr_text, crash=crash)
             crash_val = self.utils.transform_collected_text(ocr_clean_text)
             ocr_text = ocr_text.strip().replace('\n', '').replace('"', '').replace("'", '')
             data_dict['text'] = ocr_text
@@ -104,7 +106,7 @@ class FridayUtils:
         self.ocr_worker = Path(os.path.abspath(os.curdir)) / 'ocr_tmp'
         self.ocr_worker.mkdir(exist_ok=True)
 
-    def text_cleaner(self, text):
+    def text_cleaner(self, text, crash=False):
         """
         Realiza a limpeza do texto coletado.
         :param text:
@@ -115,11 +117,20 @@ class FridayUtils:
             .replace('I', '1').replace('L', '1').replace('K', '') \
             .replace('T', '1').replace('%', '').replace(',', '') \
             .replace('A', '4').replace('Q', '0').replace('S', '5') \
+            .replace('B', '8').replace('G', '8').replace('N', '11') \
             .replace('X', '').replace('‘', '').replace('(', '').replace(')', '') \
             .replace('\n', '').replace('"', '').replace("'", '').replace('O', '0')
+
         if len(text) > 1:
             if text[-1] in possible_values:
                 text = text[0:-1]
+        if crash:
+            if text.find('.') == -1 and len(text) > 2:
+                text = [i for i in text]
+                text.insert(len(text) - 2, '.')
+                text = ''.join(text)
+            if len(text) <= 2 and text != '1':
+                text = '-999.99999'
         if len(text) == 0:
             print('len 0')
             text = -99999999
@@ -206,7 +217,8 @@ class FridayUtils:
         img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         if flag:
             thres_file = str(self.ocr_worker / f"{img_filename}_ocr@{time_prefix}__bw_thres.png")
-            (thresh, img) = cv2.threshold(img, 195, 255, cv2.THRESH_BINARY)
+            (thresh, img) = cv2.threshold(img, 172, 255, cv2.THRESH_BINARY)
+        img = imutils.resize(img, width=280)
         # Apply dilation and erosion to remove some noise
         kernel = np.ones((1, 1), np.uint8)
         img = cv2.dilate(img, kernel, iterations=1)
@@ -214,19 +226,25 @@ class FridayUtils:
         # Write the image after apply opencv to do some ...
         cv2.imwrite(thres_file, img)
         # Recognize text with tesseract for python
-        result = pytesseract.image_to_string(Image.open(thres_file))
-        if not len(result) and not flag:
-            result = self.get_string_from_image(img_path=img_path, flag=True)
+        result = pytesseract.image_to_string(Image.open(thres_file), config='digits')
+        if len(result) <= 3 and not flag:
+            new_result = self.get_string_from_image(img_path=img_path, flag=True)
+            result = result if len(result) >= len(new_result) and result != '0' else new_result
         if len(result):
-            Path(thres_file).unlink()
+            try:
+                Path(thres_file).unlink()
+            except Exception as e:
+                print(e)
         return result
 
 
 if __name__ == '__main__':
     from interfaces import FridayDataManagerPandas
 
+    print('185')
     f = FridayDataGenerator(FridayDataManagerPandas())
     s_dir = 'coleta_20221224_00_05'
-    f.get_fileindex_on_folder(sub_dir=s_dir)
+    # f.get_fileindex_on_folder(sub_dir=s_dir)
+    f.get_fileindex_on_folder()
     f.collect_data_from_indexed_files(verbose=True)
     f.save_collected_data()
